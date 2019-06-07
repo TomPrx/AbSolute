@@ -2,12 +2,13 @@ open Var_store
 open Csp
 open Abstract_domain
 open Bot
+open Box_representation
 
 module type Box_closure_sig = functor (S: Var_store_sig) ->
 sig
   module Store : Var_store_sig
-  val incremental_closure: Store.t -> bconstraint -> Store.t
-  val entailment: Store.t -> bconstraint -> kleene
+  val incremental_closure: Store.t -> box_constraint -> Store.t
+  val entailment: Store.t -> box_constraint -> kleene
 end with module Store=S
 
 module Make(Store: Var_store_sig) =
@@ -22,7 +23,7 @@ struct
     | BFuncall of string * node list
     | BUnary   of unop * node
     | BBinary  of binop * node * node
-    | BVar     of var
+    | BVar     of Store.key
     | BCst     of I.t
   and node = node_kind * I.t
 
@@ -43,7 +44,7 @@ struct
      let r = debot (I.eval_fun name iargs) in
      BFuncall(name, bargs),r
   | Var v ->
-      let r = Store.find v store in
+      let r = Store.get store v in
       BVar v, r
   | Cst (c,_) ->
       let r = I.of_rat c in
@@ -110,7 +111,7 @@ struct
      let nodes_kind, itv = List.split args in
      let res = I.filter_fun name itv root in
      List.fold_left2 refine store (debot res) nodes_kind
-  | BVar v -> Store.add v (debot (I.meet root (Store.find v store))) store
+  | BVar v -> Store.set store v root
   | BCst i -> ignore (debot (I.meet root i)); store
   | BUnary (o,(e1,i1)) ->
      let j = match o with
@@ -132,8 +133,7 @@ struct
      Apply the evaluation followed by the refine step of the HC4-revise algorithm.
      It prunes the domain of the variables in `store` according to the constraint `e1 o e2`.
   *)
-  let hc4_revise store (e1,op,e2) =
-    let (b1,i1), (b2,i2) = eval store e1, eval store e2 in
+  let hc4_revise store ((b1,i1),op,(b2,i2)) =
     let j1,j2 = match op with
       | LT  -> debot (I.filter_lt i1 i2)
       | LEQ -> debot (I.filter_leq i1 i2)
@@ -146,12 +146,17 @@ struct
     let refined_store = if I.equal j1 i1 then store else refine store j1 b1 in
     if j2 = i2 then refined_store else refine refined_store j2 b2
 
+  let hc4_eval_revise store (e1,op,e2) =
+    let e1, e2 = eval store e1, eval store e2 in
+    hc4_revise store (e1,op,e2)
+
   let incremental_closure store c =
     (* let _ = (Printf.printf "HC4 with %s\n" (string_of_bconstraint c); flush_all ()) in *)
-    hc4_revise store c
+    hc4_eval_revise store c
 
   let entailment store (e1,op,e2) =
     try
+      let e1, e2 = eval store e1, eval store e2 in
       ignore(hc4_revise store (e1,op,e2));
       try
         ignore(hc4_revise store (e1,neg op,e2));
