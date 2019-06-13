@@ -4,13 +4,6 @@ open Cactus_plot
 open Time_step
 open Analyzer_all
 
-type comp = {
-  delta_feas : float;
-  delta_opt : float;
-  delta_unsat : float;
-  delta_lb : float;
-}
-
 type comp_solver_strategy = {
   solver : solver;
   other : solver;
@@ -46,11 +39,6 @@ type comp_instance = {
 type comp_problem = {
   problem : problem;
   comp_instances : comp_instance list;
-}
-
-type split_solvers = {
-  solvers : solver list;
-  others : solver list;
 }
 
 let compare_solver_strategy solver (other : solver) solver_strategy (other_strategy : strategy) =
