@@ -2,11 +2,6 @@
 
 open Absolute_analyzer
 open Instance_inclusion
-open Cactus_plot
-open Instance_inclusion
-open Cactus_plot
-open Time_step
-open Analyzer_all
 
 (** Results of all the analyses performed between a pair a strategies. *)
 type comp_solver_strategy = {
@@ -52,16 +47,16 @@ type comp_problem = {
 }
 
 (** Process the analyses between 2 strategies. *)
-val compare_solver_strategy: solver solver strategy strategy -> comp_solver_strategy
+val compare_solver_strategy: solver -> solver -> strategy -> strategy -> comp_solver_strategy
 
 (** Process the analyses between one strategy and a list of strategies. *)
-val compare_strategies: solver other strategy -> comp_strategies
+val compare_strategies: solver -> solver -> strategy -> comp_strategies
 
 (** Process the analyses between a pair of solvers. *)
-val compare_solver: solver solver -> comp_solver
+val compare_solver: solver -> solver -> comp_solver
 
 (** Process the analyses between one solver and a list of solvers. *)
-val compare_solver_to_others: solver list solver -> comp_solver_to_others
+val compare_solver_to_others: solver list -> solver -> comp_solver_to_others
 
 (** Process the analyses for one instance set. *)
 val compare_instances_set: instances_set -> comp_instance
@@ -76,22 +71,22 @@ val remove_last_char: string -> string
 val json_name: int -> string  
 
 (** Return the json string of one analyse. *)
-val to_json_solver_strategy: int problem instances_set string comp_solver_strategy -> string 
+val to_json_solver_strategy: int -> problem -> instances_set -> string -> comp_solver_strategy -> string 
 
 (** Return the json string of one analyse from one strategy and a list of strategie. *)
-val to_json_strategies: int problem instance string comp_strategies -> string 
+val to_json_strategies: int -> problem -> instances_set -> string -> comp_strategies -> string 
 
 (** Return the json string of one analyse from a pair of solve. *)
-val to_json_solver: int problem instance string comp_solver -> string 
+val to_json_solver: int -> problem -> instances_set -> string -> comp_solver -> string 
 
 (** Return the json string of one analyse from one solver and a list of solver. *)
-val to_json_solvers: int problem instance string comp_solvers -> string
+val to_json_solvers: int -> problem -> instances_set -> string -> comp_solver_to_others -> string
 
 (** Return the json string of one analyse from an instances_se. *)
-val to_json_instances_set: int problem string comp_instances -> string 
+val to_json_instances_set: int -> problem -> string -> comp_instance -> string 
 
 (** Return the json string of one analyse from a proble. *)
-val to_json_problem: int string comp_problem -> string 
+val to_json_problem: int -> string -> comp_problem -> string 
 
 (** Return the json string of all analyses from a list of comp_problem. *)
 val to_json_comp_database: comp_problem list -> string 
